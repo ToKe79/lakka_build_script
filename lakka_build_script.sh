@@ -167,12 +167,9 @@ branch="Lakka-V2.1-dev"
 # Where do we store the images?
 webroot="/mnt/nas/WEB/lakka.vudiq.sk"
 # Where is the build folder with cloned git repository?
-#buildroot="/home/vudiq/lakka/repo/Lakka-LibreELEC"
 buildroot="/mnt/nas/REPOS/Lakka"
 # Make flaghs, e.g. how many parallel jobs should run (should be nr. of cores/threads on the build system)
 mflags="-j8"
-# Logging files, logs will be e-mailed
-stamp=$(date +%Y-%m-%d_%H%M%S)
 # Which projects we want to build? (see folder projects/ in buildroot)
 buildprojects="Generic RPi RPi2 imx6 OdroidC1 Odroid_C2 OdroidXU3 WeTek_Core WeTek_Hub WeTek_Play WeTek_Play_2 Gamegirl S8X2 S805 S905 Rockchip Allwinner"
 # Architecture specifications for specific projects (i386, x86_64, arm, aarch64, ...)
@@ -193,6 +190,7 @@ devices_default=""
 devices_Rockchip="TinkerBoard ROCK64 MiQi"
 default="default"
 # Logging
+stamp=$(date +%Y-%m-%d_%H%M%S)
 logsroot="/mnt/nas/LOGS"
 logsdir="$logsroot/current"
 storage_logs="$logsroot/backups"
