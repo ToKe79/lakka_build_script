@@ -122,38 +122,39 @@ timehuman() {
 	if [ $minute -gt 0 ]; then
 		[ $minute = 1 ] && output="${output}$minute minute " || output="${output}$minute minutes "
 	fi
-	[ $second = 1 ] && output="${output}$second second" || output="${output}$second seconds"
+	if [ $second -gt 0 ] ; then
+		[ $second = 1 ] && output="${output}$second second" || output="${output}$second seconds"
+	fi
 }
 show_params() {
 	echo "$0 takes only this two parameters:"
-	echo " force: force build even when repository git version did not change after local repository update"
-	echo " update: update local repository before build (git pull)"
+	echo "   force:  force build even when repository git version did not change after local repository update"
+	echo "   update: update local repository before build (git pull)"
+	echo "These two parameters can be combined, e.g.:"
+	echo "$0 force update - update local repository and force build"
+	echo "$0 update force - same as above"
+	echo "$0 update       - update local repository and build only if repository changed"
+	echo "$0 force        - do not update local repository and build"
 	exit 0
 }
 force="no"
 git_update="no"
-if [ "$#" -ne 0 ] ; then
-	if [ "$#" -gt 2 ] || [ "$1" = "help" ] ; then
+if [ $# -ne 0 ] ; then
+	if [ $# -gt 2 ] || [ "$1" = "help" ] ; then
 		show_params
-	else
-		if [ "$#" -eq 2 ] ; then
-			if [ "$1" = "force" -a "$2" = "update" ] || [ "$1" = "update" -a "$2" = "force" ] ; then
-				force="yes"
-				git_update="yes"
-			else
-				show_params
-			fi
+	elif [ $# -eq 2 ] ; then
+		if [ "$1" = "force" -a "$2" = "update" ] || [ "$1" = "update" -a "$2" = "force" ] ; then
+			force="yes"
+			git_update="yes"
 		else
-			if [ "$1" = "force" ] ; then
-				force="yes"
-			else
-				if [ "$1" = "update" ] ; then
-					git_update="yes"
-				else
-					show_params
-				fi
-			fi
+			show_params
 		fi
+	elif [ "$1" = "force" ] ; then
+		force="yes"
+	elif [ "$1" = "update" ] ; then
+		git_update="yes"
+	else
+		show_params
 	fi
 fi
 #
@@ -172,15 +173,6 @@ buildroot="/mnt/nas/REPOS/Lakka"
 mflags="-j8"
 # Logging files, logs will be e-mailed
 stamp=$(date +%Y-%m-%d_%H%M%S)
-logsroot="/mnt/nas/LOGS"
-logsdir="$logsroot/current"
-log="$logsdir/nightlies_$stamp.txt"
-logbase="build_log"
-sendername="Lakka Build Job"
-sender="vudiq@vps.vudiq.sk"
-# comma and space separated recipients:
-recipients="vudiq@vps.vudiq.sk"
-subject="Lakka Nightlies Logs - $stamp"
 # Which projects we want to build? (see folder projects/ in buildroot)
 buildprojects="Generic RPi RPi2 imx6 OdroidC1 Odroid_C2 OdroidXU3 WeTek_Core WeTek_Hub WeTek_Play WeTek_Play_2 Gamegirl S8X2 S805 S905 Rockchip Allwinner"
 # Architecture specifications for specific projects (i386, x86_64, arm, aarch64, ...)
@@ -200,14 +192,28 @@ systems_Allwinner="Bananapi Cubieboard2 Cubietruck orangepi_2 orangepi_lite oran
 devices_default=""
 devices_Rockchip="TinkerBoard ROCK64 MiQi"
 default="default"
+# Logging
+logsroot="/mnt/nas/LOGS"
+logsdir="$logsroot/current"
+storage_logs="$logsroot/backups"
+log="$logsdir/nightlies_$stamp.txt"
+logbase="build_log"
 lockfile="$logsdir/lakka_build_job.lock"
+# E-mail with logs/build results
+my_hostname=$(hostname -f)
+my_user=$USER
+sendername="Lakka Build Job"
+sender="noreply@$my_hostname"
+# comma separated recipients
+recipients="$my_user@$my_hostname"
+subject="Lakka Nightlies Logs - $stamp"
 email_logs="yes"
 max_attach_size=10000000
 email_size_limit=$((max_attach_size / 4 * 3))
 compress_logs="yes"
-storage_logs="$logsroot/backups"
 if [ -f "$lockfile" ] ; then
 	echo "Previous job still running. Aborting!" >&2
+	exit 1
 fi
 touch "$lockfile"
 # Check and set required binaries/tools
@@ -308,6 +314,7 @@ if [ "$git_update" = "yes" ] ; then
 		if [ $ret -gt 0 ] ; then
 			echo "Failed during git pull - aborting!" >>$log
 			echo "Failed during git pull - aborting!" >&2
+			echo "Moving log to $storage_logs/$log" >&2
 			mv "$log" "$storage_logs/$log"
 			rm "$lockfile"
 			exit 1
