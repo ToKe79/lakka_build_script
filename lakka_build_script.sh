@@ -194,7 +194,8 @@ stamp=$(date +%Y-%m-%d_%H%M%S)
 logsroot="/mnt/nas/LOGS"
 logsdir="$logsroot/current"
 storage_logs="$logsroot/backups"
-log="$logsdir/nightlies_$stamp.txt"
+logname="nightlies_$stamp.txt"
+log="$logsdir/$logname"
 logbase="build_log"
 lockfile="$logsdir/lakka_build_job.lock"
 # E-mail with logs/build results
@@ -296,7 +297,7 @@ if [ "$git_update" = "yes" ] ; then
 	if [ "$git_local" = "$git_remote" ] ; then
 		if [ "$force" = "no" ] ; then
 			echo "At same version, no new builds are needed. Aborting." >>$log
-			mv "$log" "$storage_logs/$log"
+			mv "$log" "$storage_logs/$logname"
 			rm "$lockfile"
 			exit 0
 		else
@@ -313,7 +314,7 @@ if [ "$git_update" = "yes" ] ; then
 			echo "Failed during git pull - aborting!" >>$log
 			echo "Failed during git pull - aborting!" >&2
 			echo "Moving log to $storage_logs/$log" >&2
-			mv "$log" "$storage_logs/$log"
+			mv "$log" "$storage_logs/$logname"
 			rm "$lockfile"
 			exit 1
 		fi
@@ -424,15 +425,15 @@ if [ "$compress_logs" = "yes" ] ; then
 fi
 if [ "$compress_logs" = "no" ] || [ "$have_archive" = "no" ] ; then
 	mkdir -p "$storage_logs/$stamp"
-	mv $logbase* "$storage_logs/$stamp"
-	mv $log "$storage_logs/$stamp"
-	logs_location="$storage_logs/$stamp"
+	mv $logbase* "$storage_logs/$stamp/"
+	mv $log "$storage_logs/$stamp/"
+	logs_location="$storage_logs/$stamp/"
 fi
 if [ "$have_archive" = "yes" ] ; then
 	size=$($bin_stat --printf="%s" $logarchive)
 	if [ $size -gt $email_size_limit ] ; then
 		attach_archive="no"
-		mv $logarchive "$storage_logs"
+		mv $logarchive "$storage_logs/"
 		logs_location="$storage_logs/$logarchive"
 	else
 		attach_archive="yes"
