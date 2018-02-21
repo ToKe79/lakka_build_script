@@ -198,7 +198,7 @@ read -d '' build_intro << EOF
 ##### Starting Lakka nightly build script #####
 *** Configuration ***
 Building distribution: $distro
-Branch: $upstream_branch
+Branch: $branch
 Building project(s): $buildprojects
 Default architecture(s): $archs_default
 Specific architectures:
@@ -227,7 +227,7 @@ EOF
 echo "$build_intro" >>$log
 cd "$buildroot"
 echo "In folder: `pwd`" >>$log
-echo "Setting branch to 'branch':" >>$log
+echo "Setting branch to '$branch':" >>$log
 $bin_git checkout $branch &>>$log
 echo "Updating repository (git pull):" >>$log
 git_message=$($bin_git pull 2>&1)
