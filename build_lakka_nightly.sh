@@ -337,7 +337,7 @@ for p in $buildprojects ; do
 done
 # remove all uncommited changes
 cd $buildroot
-$bin_git checkout -- .
+$bin_git checkout -- . &>>$log
 nightfinish=$(date +%s)
 nightrun=$((nightfinish - nightstart))
 timehuman $nightrun
